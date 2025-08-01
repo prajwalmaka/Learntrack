@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LearnTrack{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet'>
+    
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <style>
+        :root {
+            --navbar-glass-bg: rgba(24, 24, 24, 0.85); /* Always dark */
+            --main-bg: rgba(34, 34, 34, 0.95);         /* Dark mode main bg */
+            --main-text: #fff;                         /* Dark mode text */
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        }
+        .main-container {
+            background: var(--main-bg);
+            color: var(--main-text);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 2rem 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        footer {
+            background: #181818;
+            color: #bbb;
+            padding: 1.2rem 0 0.5rem 0;
+            text-align: center;
+            font-size: 1rem;
+            border-top: 1px solid #333;
+        }
+        .navbar-glass {
+            background: var(--navbar-glass-bg) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            backdrop-filter: blur(6px);
+        }
+    </style>
+</head>
+<body{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}"{% endif %}>
+    <nav id="mainNavbar" class="navbar navbar-expand-lg navbar-light navbar-glass sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.index') }}">
+                <i class="fas fa-graduation-cap fa-lg"></i>
+                <span class="fw-bold">LearnTrack</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if current_user.is_authenticated %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if current_user.is_admin() %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.admin_courses') }}"><i class="fas fa-book"></i> Manage Courses</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.admin_users') }}"><i class="fas fa-users-cog"></i> Manage Users</a></li>
+                    {% elif current_user.is_teacher() %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('teacher.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('teacher.students') }}"><i class="fas fa-users me-1"></i>Students</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('teacher.assignments') }}"><i class="fas fa-tasks me-1"></i>Assignments</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('student.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('student.assignments') }}"><i class="fas fa-tasks me-1"></i>Assignments</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('student.performance') }}"><i class="fas fa-chart-line me-1"></i>Performance</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.calendar') }}"><i class="fas fa-calendar me-1"></i>Calendar</a></li>
+                </ul>
+                
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <!-- Notification Bell -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                            <i class="fas fa-bell fa-lg"></i>
+                            {% set unread_count = g.unread_notifications|length if g.unread_notifications is defined else 0 %}
+                            {% if unread_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notifDropdown" style="min-width: 320px; max-width: 400px;">
+                            <li class="dropdown-header fw-bold">Notifications</li>
+                            {% if g.notifications is defined and g.notifications %}
+                                {% for notif in g.notifications %}
+                                <li class="dropdown-item{% if not notif.is_read %} fw-bold{% endif %}" data-notif-id="{{ notif.id }}">
+                                    <a href="{{ notif.link or '#' }}" class="text-decoration-none text-reset d-block notif-link">
+                                        <small>{{ notif.message }}</small><br>
+                                        <small class="text-muted">{{ notif.timestamp.strftime('%b %d, %I:%M %p') }}</small>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="dropdown-item text-muted">No notifications</li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    {% if current_user.is_authenticated and (current_user.is_teacher() or current_user.is_student()) %}
+                    <li class="nav-item me-2">
+                        <a href="#" id="chatToggleNav" class="nav-link" title="Chat">
+                            <i class="fas fa-comments fa-lg"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fa-lg"></i>{{ current_user.name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text">{{ current_user.email }}</span></li>
+                            <li><span class="dropdown-item-text text-muted">{{ current_user.role.title() }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-md-start text-center mb-2 mb-md-0">
+                    &copy; {{ 2024 }} LearnTrack. All rights reserved.
+                </div>
+                <div class="col-md-6 text-md-end text-center">
+                    <a href="#" class="text-decoration-none text-secondary me-3">Privacy Policy</a>
+                    <a href="#" class="text-decoration-none text-secondary">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+    // Theme toggle disabled: always dark
+    document.addEventListener('DOMContentLoaded', function() {
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    });
+    </script>
+    
+    {% block extra_js %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.notif-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                const li = link.closest('li[data-notif-id]');
+                if (!li) return;
+                const notifId = li.getAttribute('data-notif-id');
+                if (!li.classList.contains('fw-bold')) return; // already read
+                fetch(`/notification/read/${notifId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (document.querySelector('input[name=csrf_token]') || {}).value || ''
+                    },
+                    credentials: 'same-origin'
+                }).then(resp => resp.json()).then(data => {
+                    if (data.success) {
+                        li.classList.remove('fw-bold');
+                        // Update badge
+                        const badge = document.querySelector('#notifDropdown .badge');
+                        if (badge) {
+                            let count = parseInt(badge.textContent.trim());
+                            if (!isNaN(count) && count > 0) {
+                                count -= 1;
+                                if (count > 0) badge.textContent = count;
+                                else badge.remove();
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chat box toggle
+        const chatToggle = document.getElementById('chatToggleNav');
+        const chatBox = document.getElementById('chatBox');
+        const chatBoxClose = document.getElementById('chatBoxClose');
+        if (chatToggle && chatBox && chatBoxClose) {
+            chatToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                chatBox.style.display = chatBox.style.display === 'none' ? 'block' : 'none';
+            });
+            chatBoxClose.addEventListener('click', function() {
+                chatBox.style.display = 'none';
+            });
+        }
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatBox = document.getElementById('chatBox');
+        const chatBoxMaximize = document.getElementById('chatBoxMaximize');
+        let chatBoxMaximized = false;
+        if (chatBoxMaximize && chatBox) {
+            chatBoxMaximize.addEventListener('click', function() {
+                chatBoxMaximized = !chatBoxMaximized;
+                if (chatBoxMaximized) {
+                    chatBox.style.width = '95vw';
+                    chatBox.style.height = '90vh';
+                    chatBox.style.right = '2vw';
+                    chatBox.style.bottom = '2vh';
+                    chatBox.querySelector('.card-body').style.height = 'calc(90vh - 48px)';
+                    chatBoxMaximize.innerHTML = '<i class="fas fa-compress"></i>';
+                    chatBoxMaximize.title = 'Minimize';
+                } else {
+                    chatBox.style.width = '350px';
+                    chatBox.style.height = '480px';
+                    chatBox.style.right = '24px';
+                    chatBox.style.bottom = '24px';
+                    chatBox.querySelector('.card-body').style.height = '400px';
+                    chatBoxMaximize.innerHTML = '<i class="fas fa-expand"></i>';
+                    chatBoxMaximize.title = 'Maximize';
+                }
+            });
+        }
+    });
+    </script>
+    {% endblock %}
+
+    <!-- Chat Box UI -->
+    {% if current_user.is_authenticated and (current_user.is_teacher() or current_user.is_student()) %}
+    <div id="chatBox" class="card shadow-lg border-0 position-fixed" style="display:none; width: 350px; height: 480px; bottom: 24px; right: 24px; z-index: 1055; background: rgba(34,34,34,0.97); transition: width 0.2s, height 0.2s;">
+        <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white py-2 px-3">
+            <span class="fw-bold"><i class="fas fa-comments me-2"></i>Chat</span>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-light border-0" id="chatBoxMaximize" title="Maximize"><i class="fas fa-expand"></i></button>
+                <button type="button" class="btn-close btn-close-white" id="chatBoxClose" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="card-body p-0 d-flex" style="height: 400px;">
+            <div id="chatUserList" class="border-end bg-light-subtle" style="width: 110px; overflow-y: auto;">
+                <!-- User list will be loaded here -->
+            </div>
+            <div class="flex-grow-1 d-flex flex-column">
+                <div id="chatMessages" class="flex-grow-1 p-2" style="overflow-y: auto;">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <form id="chatForm" class="d-flex p-2 border-top bg-dark-subtle">
+                    <input type="text" id="chatInput" class="form-control me-2" placeholder="Type a message..." autocomplete="off" />
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
