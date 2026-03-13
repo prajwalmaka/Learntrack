@@ -6,8 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from sqlalchemy import and_, or_, func
 from functools import wraps
-
-from app import db
+from extension import db
 from models import User, Class, Assignment, Submission, Enrollment, Course, Notification, Message
 from forms import LoginForm, RegisterForm, ClassForm, AssignmentForm, SubmissionForm, GradeForm, EnrollStudentForm, AdminClassForm
 from utils import allowed_file, save_uploaded_file
@@ -454,7 +453,7 @@ def dashboard():
     classes = [e.class_obj for e in enrollments]
     
     # Get upcoming assignments
-    class_ids = [c.id for c in classes]
+    class_ids = [c.id for c in classes if c is not None]
     upcoming_assignments = Assignment.query.filter(
         Assignment.class_id.in_(class_ids),
         Assignment.due_date > datetime.utcnow()

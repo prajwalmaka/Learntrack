@@ -1,3 +1,4 @@
+
 import os
 import logging
 from flask import Flask
@@ -5,15 +6,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+from extension import db, login_manager
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 class Base(DeclarativeBase):
     pass
 
-db = SQLAlchemy(model_class=Base)
-login_manager = LoginManager()
+'''db = SQLAlchemy(model_class=Base)
+login_manager = LoginManager()'''
 
 # Create the app
 app = Flask(__name__)
@@ -71,6 +72,12 @@ with app.app_context():
 
 # Import and register blueprints
 from routes import auth_bp, teacher_bp, student_bp, main_bp, admin_bp
+from utils import format_datetime, format_date
+
+# Add Jinja filters
+app.jinja_env.filters['format_date'] = format_date
+app.jinja_env.filters['format_datetime'] = format_datetime
+
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(teacher_bp, url_prefix='/teacher')
 app.register_blueprint(student_bp, url_prefix='/student')
@@ -100,3 +107,8 @@ def mark_notification_read(notif_id):
     notif.is_read = True
     db.session.commit()
     return jsonify({'success': True})
+
+
+
+if __name__ == "__main__":
+        app.run(debug=True)

@@ -13,7 +13,7 @@
             </ol>
         </nav>
         <h1 class="fw-bold"><i class="fas fa-file-alt me-2"></i>{{ assignment.title }}</h1>
-        <p class="text-muted">{{ assignment.class_obj.name }} • Due: {{ assignment.due_date.strftime('%b %d, %Y at %I:%M %p') }}</p>
+        <p class="text-muted">{{ assignment.class_obj.name }} • Due: {{ assignment.due_date|format_date }}</p>
     </div>
 </div>
 <div class="row mb-4">
@@ -63,7 +63,7 @@
                                 {% for submission in submissions %}
                                 <tr>
                                     <td><i class="fas fa-user me-2"></i>{{ submission.student.name }}<br><small class="text-muted">{{ submission.student.email }}</small></td>
-                                    <td>{{ submission.submitted_at.strftime('%b %d, %Y at %I:%M %p') }}{% if submission.is_late() %}<br><span class="badge bg-warning">Late</span>{% endif %}</td>
+                                    <td>{{ submission.submitted_at|format_date }}{% if submission.is_late() %}<br><span class="badge bg-warning">Late</span>{% endif %}</td>
                                     <td>
                                         {% if submission.is_late() %}
                                             <span class="badge bg-warning">Late</span>

@@ -1,9 +1,10 @@
 from datetime import datetime
-from app import db
+from extension import db
 from flask_login import UserMixin
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+import pytz
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,6 +89,14 @@ class Assignment(db.Model):
     def is_overdue(self):
         return datetime.utcnow() > self.due_date
     
+    def is_submission_late(self, submission):
+        if not submission or not submission.submitted_at:
+            return False
+        utc = pytz.utc
+        submitted_utc = submission.submitted_at.replace(tzinfo=utc)
+        due_utc = self.due_date.replace(tzinfo=utc)
+        return submitted_utc > due_utc
+    
     def get_submission_by_student(self, student_id):
         return Submission.query.filter_by(assignment_id=self.id, student_id=student_id).first()
 
@@ -97,7 +106,7 @@ class Submission(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     submission_text = db.Column(db.Text)
     file_path = db.Column(db.String(255))  # Path to uploaded submission file
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow())
     
     # Grading fields
     score = db.Column(db.Integer)
@@ -115,7 +124,8 @@ class Submission(db.Model):
         return self.score is not None
     
     def is_late(self):
-        return self.submitted_at > self.assignment.due_date if self.assignment else False
+        return self.assignment.is_submission_late(self) if self.assignment else False
+        
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -142,14 +152,13 @@ class Message(db.Model):
 
 # Utility to create the default admin user
 def create_default_admin():
-    with current_app.app_context():
-        admin = User.query.filter_by(email='admin@gmail.com').first()
-        if not admin:
-            admin = User(
-                name='Admin',
-                email='admin@gmail.com',
-                role='admin'
-            )
-            admin.set_password('admin@123')
-            db.session.add(admin)
-            db.session.commit()
+    admin = User.query.filter_by(email='admin@gmail.com').first()
+    if not admin:
+        admin = User(
+            name='Admin',
+            email='admin@gmail.com',
+            role='admin'
+        )
+        admin.set_password('admin@123')
+        db.session.add(admin)
+        db.session.commit()

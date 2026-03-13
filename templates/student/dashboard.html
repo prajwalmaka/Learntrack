@@ -53,7 +53,7 @@
                         <div>
                             <h6 class="mb-0 fw-semibold">{{ class.name }}</h6>
                             <small class="text-muted">{{ class.description or 'No description' }}</small>
-                            <br><small class="text-muted">Teacher: {{ class.teacher.name }}</small>
+                            <br><small class="text-muted">Teacher: {{ class.teacher.name if class.teacher else "N/A" }}</small>
                         </div>
                         <div>
                             <span class="badge bg-primary">{{ class.assignments|length }} assignments</span>
@@ -82,7 +82,7 @@
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <div>
                             <h6 class="mb-0 fw-semibold">{{ assignment.title }}</h6>
-                            <small class="text-muted">{{ assignment.class_obj.name }}  Due: {{ assignment.due_date.strftime('%b %d, %Y') }}</small>
+                            <small class="text-muted">{{ assignment.class_obj.name }}  Due: {{ assignment.due_date|format_date }}</small>
                         </div>
                         <div>
                             {% set submission = assignment.get_submission_by_student(current_user.id) %}
@@ -132,8 +132,14 @@
                                 {% for submission in recent_submissions %}
                                 <tr>
                                     <td>{{ submission.assignment.title }}</td>
-                                    <td>{{ submission.assignment.class_obj.name }}</td>
-                                    <td>{{ submission.submitted_at.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                    {% if submission.assignment and submission.assignment.class_obj %}
+                                    {{ submission.assignment.class_obj.name }}
+                                    {% else %}
+                                    Class removed
+                                    {% endif %}
+                                    </td>
+                                    <td>{{ submission.submitted_at|format_date }}</td>
                                     <td>
                                         {% if submission.is_late() %}
                                             <span class="badge bg-warning">Late</span>

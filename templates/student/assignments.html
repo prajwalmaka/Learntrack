@@ -38,30 +38,30 @@
                         {{ assignment.description[:100] + '...' if assignment.description and assignment.description|length > 100 else assignment.description }}
                     </p>
                     <div class="mb-3">
-                        <small class="text-muted">
-                            <i class="fas fa-calendar me-1"></i>Due: {{ assignment.due_date.strftime('%b %d, %Y at %I:%M %p') }}
-                        </small>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted">
-                            <i class="fas fa-star me-1"></i>Max Score: {{ assignment.max_score }}
-                        </small>
-                    </div>
-                    {% if assignment.attachment_path %}
-                    <div class="mb-3">
-                        <small>
-                            <i class="fas fa-paperclip me-1"></i>
-                            <a href="{{ url_for('main.download_file', filename=assignment.attachment_path) }}" class="text-decoration-none">
-                                Download Assignment
-                            </a>
-                        </small>
-                    </div>
-                    {% endif %}
-                    {% if submission %}
-                    <div class="mb-3">
-                        <div class="bg-dark bg-opacity-10 p-3 rounded text-light border border-primary-subtle">
-                            <h6 class="fw-semibold">Your Submission:</h6>
-                            <p class="mb-1"><strong>Submitted:</strong> {{ submission.submitted_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Due: {{ assignment.due_date|format_date }}
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-star me-1"></i>Max Score: {{ assignment.max_score }}
+                            </small>
+                        </div>
+                        {% if assignment.attachment_path %}
+                        <div class="mb-3">
+                            <small>
+                                <i class="fas fa-paperclip me-1"></i>
+                                <a href="{{ url_for('main.download_file', filename=assignment.attachment_path) }}" class="text-decoration-none">
+                                    Download Assignment
+                                </a>
+                            </small>
+                        </div>
+                        {% endif %}
+                        {% if submission %}
+                        <div class="mb-3">
+                            <div class="bg-dark bg-opacity-10 p-3 rounded text-light border border-primary-subtle">
+                                <h6 class="fw-semibold">Your Submission:</h6>
+                                <p class="mb-1"><strong>Submitted:</strong> {{ submission.submitted_at|format_date }}</p>
                             {% if submission.is_late() %}
                                 <span class="badge bg-warning">Late Submission</span>
                             {% endif %}

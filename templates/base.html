@@ -98,7 +98,7 @@
                                 <li class="dropdown-item{% if not notif.is_read %} fw-bold{% endif %}" data-notif-id="{{ notif.id }}">
                                     <a href="{{ notif.link or '#' }}" class="text-decoration-none text-reset d-block notif-link">
                                         <small>{{ notif.message }}</small><br>
-                                        <small class="text-muted">{{ notif.timestamp.strftime('%b %d, %I:%M %p') }}</small>
+                                        <small class="text-muted">{{ notif.timestamp|format_date }}</small>
                                     </a>
                                 </li>
                                 {% endfor %}

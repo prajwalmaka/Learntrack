@@ -100,7 +100,7 @@
                                             <span class="badge bg-danger">F</span>
                                         {% endif %}
                                     </td>
-                                    <td class="text-muted">{{ submission.submitted_at.strftime('%b %d, %Y') }}</td>
+                                    <td class="text-muted">{{ submission.submitted_at|format_date }}</td>
                                     <td>
                                         {% if submission.feedback %}
                                             <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#feedback-{{ submission.id }}">
@@ -118,7 +118,7 @@
                                             <div class="card card-body m-3">
                                                 <h6><i class="fas fa-comment me-2"></i>Teacher Feedback:</h6>
                                                 <p class="mb-0">{{ submission.feedback }}</p>
-                                                <small class="text-muted">Graded on {{ submission.graded_at.strftime('%b %d, %Y at %I:%M %p') }}</small>
+                                                <small class="text-muted">Graded on {{ submission.graded_at|format_date }}</small>
                                             </div>
                                         </div>
                                     </td>

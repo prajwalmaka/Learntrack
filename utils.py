@@ -24,13 +24,13 @@ def save_uploaded_file(file):
     return None
 
 def format_datetime(dt):
-    """Format datetime for display."""
+    """Format datetime for display (date only per user request)."""
     if dt:
-        return dt.strftime('%Y-%m-%d %H:%M')
+        return dt.strftime('%b %d, %Y')
     return ''
 
 def format_date(dt):
-    """Format date for display."""
-    if dt:
-        return dt.strftime('%Y-%m-%d')
-    return ''
+    """Format date (alias for datetime)."""
+    return format_datetime(dt)
+
+
