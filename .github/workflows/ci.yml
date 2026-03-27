@@ -38,4 +38,4 @@ jobs:
 
       - name: Push Docker Image
         run:
-          docekr push ${{ secrets.DOCKER_USERNAME }}/learntrack:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/learntrack:latest
