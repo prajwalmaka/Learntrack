@@ -22,7 +22,12 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///learntrack.db")
+
+DB_USER = os.environ.get("POSTGRES_USER", "learntrack")
+DB_PASS = os.environ.get("POSTGRES_PASSWORD", "makacha")
+DB_HOST = os.environ.get("POSTGRES_HOST", "db")
+DB_NAME = os.environ.get("POSTGRES_DB", "learntrack_db")
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,

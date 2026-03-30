@@ -1,18 +1,21 @@
+# Use slim Python image
+FROM python:3.11-slim
 
-FROM python:3.10-slim
-
-# Prevent from buffering
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Set working directory
 WORKDIR /app
 
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app
+# Install PostgreSQL client (for pg_isready) – optional, you can skip if using Python wait
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Copy app code
+COPY . .
 
-EXPOSE 5000
+# Make wait script executable
+RUN chmod +x wait-for-db.sh
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "3"]
+# Command to start the app via wait-for-db.sh
+CMD ["./wait-for-db.sh"]

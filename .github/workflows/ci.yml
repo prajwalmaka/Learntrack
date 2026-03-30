@@ -39,3 +39,8 @@ jobs:
       - name: Push Docker Image
         run:
           docker push ${{ secrets.DOCKER_USERNAME }}/learntrack:latest
+ 
+      - name: Build and Push Docker Compose
+        run:
+          docker compose -f docker-compose.yml build
+

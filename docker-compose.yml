@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: learntrack
+      POSTGRES_PASSWORD: makacha
+      POSTGRES_DB: learntrack_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      POSTGRES_USER: learntrack
+      POSTGRES_PASSWORD: makacha
+      POSTGRES_DB: learntrack_db
+      POSTGRES_HOST: db
+      FLASK_ENV: development
+    ports:
+      - "5000:5000"
+    command: ["./wait-for-db.sh", "db", "gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
+
+volumes:
+  postgres_data:
+
